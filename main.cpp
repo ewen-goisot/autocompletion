@@ -1,3 +1,5 @@
+// là ça arche, ça trie les caracteres selon la *** ème lettre au choix
+
 #include <iostream>
 using namespace std;
 
@@ -58,6 +60,18 @@ car_fra trouve_caractere_position( int i, string s ){
 	return caractere;
 }
 
+bool compare(car_fra a, car_fra b){
+	if( (int)a.normal == -61 xor (int)b.normal == -61 ){
+		return false;
+	}
+	else if( (int)a.normal == -61 && (int)b.normal == -61){
+		return ((int)a.special == (int)b.special);
+	}
+	else{
+		return ((int)a.normal == (int)b.normal);
+	}
+}
+
 int main(int argc, char *argv[]){
 	int position = 0;
 	if(argc >= 0){
@@ -92,9 +106,7 @@ int main(int argc, char *argv[]){
 	}
 	while( getline(fichier,mot) ){
 		for(j=0;j<38;++j){
-			if(	(char)(mot[position]) == (char)(francais[j][0])    &&
-				((char)(francais[j][0]) != -61 ||   (char)(mot[position+1]) == (char)(francais[j][1]))
-			   ){
+			if(	compare( trouve_caractere_position(0,francais[j])  , trouve_caractere_position(position, mot) ) ){
 				dictionnaire[j] += mot;
 				dictionnaire[j] += "\n";
 				lettre_presente[j] = true;
@@ -119,7 +131,8 @@ int main(int argc, char *argv[]){
 			fichier2.close();
 		}
 	}
-	
+
+
 
 	return 0;
 

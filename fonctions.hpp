@@ -14,10 +14,11 @@ typedef int pointeur;
 struct noeud{
 // TODO RÉPARER CE STOCKAGE MÉMOIRE FOIREUX
 	char m[30];             // mot représenté
+	int quedalle;           // pour éviter des bugs
 	char nh;                // taille de l'historique ( <= 20 )
-	pointeur p;             // pointeur vers le père
 	char d;                 // 87654321 ... 1: noeud vrai? 2: racine? 3: +1 car exactement 4: premier car normal
 	char t;                 // taille mot actuel en caractères
+	pointeur p;             // pointeur vers le père
 	caractere cp;           // caractère du père allant à THIS
 	pointeur h[20];         // liste des pointeurs vers les historiques
 	pointeur f[NB_LETTRES]; // liste des pointeurs vers les fils

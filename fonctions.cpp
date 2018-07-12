@@ -213,8 +213,8 @@ void mot_to_arbre_add(char* m_in, arbre &a_out){
 			++a_out.m; // TODO vérifier
 			int_to_arbre_icz(1, a_out); // ajoute UN noeud
 			a_out.v[p2].f[u1] = p1;
-			a_out.v[p1].p = p2;
 			noeud_init(a_out.v[p1]);
+			a_out.v[p1].p = p2;
 			mot_copie(m_in, a_out.v[p1].m);
 			mot_int_to_caractere(a_out.v[p3].m, i1, c2);
 			u2 = w_caractere_to_char(a_out.w, c1);

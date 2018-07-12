@@ -1,312 +1,264 @@
-// ne va pas avec CE main
-
+// fonctions.cpp {{{
 #include <iostream>
-#include <vector>
-//#include <string.h>
-
 using namespace std;
-
+#include <vector>
 #include "fonctions.hpp"
-//#include "lettres.hpp"
-
-
-// 2
-struct caractere{
-	char normal;
-	char special;
-};
-typedef struct caractere caractere;
-
-// 210
-struct noeud{
-	char mot_actuel[30];
-	unsigned char nb_historique;
-	unsigned char taille; // taille mot actuel (évite de devoir la recalculer)
-	unsigned char info; // 87654321 ... 1: noeud vrai? 2: racine? 3: +1 car exactement 4: premier car normal
-	caractere c_pere;
-	int pere;
-	int fils[NB_LETTRES];
-	int historique[20];
-};
-typedef struct noeud noeud;
-
-// 76
-struct slettres{
-	caractere c[38];
-};
-typedef struct slettres slettres;
-
-struct mot{
-	char c[30];
-};
-typedef struct mot mot;
-
-struct arbre{
-	int taille; // different de size
-	int nb_mots; // different de taille et size
-	vector <noeud> v;
-};
-typedef struct arbre arbre;
-
-struct numlettre{
-	unsigned char normal[256];
-	unsigned char special[256];
-};
-typedef struct numlettre numlettre;
-
-
-
-void carnull(caractere &c){
-	c.normal = 0;
-	c.special = 0;
-}
-
-void cacopie(caractere &cain, caractere &caout){
-	caout.normal = cain.normal;
-	caout.special = cain.special;
-}
-
-/*
-// TODO : la refaire
-char * catoch(caractere c){
-	char resultat[4];
-	resultat[0] = c.normal;
-	if(c.normal == -61){
-		resultat[1] = c.special;
-		resultat[2] = 0;
+// }}}
+void caractere_to_noeud(caractere &c_in, noeud &n_out){ //{{{
+	n_out.m[0] = c_in.n;
+	if(c_in.n == -61){
+		n_out.m[1] = c_in.s;
+		n_out.m[2] = 0; // \0
+		n_out.d = 0b00000110; // special, un car, racine, non utilisable
 	}
 	else{
-		resultat[1] = 0;
+		n_out.m[1] = 0; // \0
+		n_out.d = 0b00001110; // n, un car, racine, non utilisable
 	}
-	return resultat;
-}
-*/
-
-caractere chtoca(char * c){
-	caractere resultat;
-	resultat.normal = c[0];
-	if(c[0] == -61){
-		resultat.special = c[1];
-	}
-	return resultat;
-}
-
-//une racine par lettre
-void racine(noeud &n, caractere &c){
-	n.mot_actuel[0] = c.normal;
-	if(c.normal == -61){
-		n.mot_actuel[1] = c.special;
-		n.mot_actuel[2] = 0; // \0
-		n.info = 0b00000110; // special, un car, racine, non utilisable
-	}
-	else{
-		n.mot_actuel[1] = 0; // \0
-		n.info = 0b00001110; // normal, un car, racine, non utilisable
-	}
-	n.pere = -1;
-	cacopie(c, n.c_pere);
+	n_out.p = -1; // -1 signifie NULL
+	caractere_copie(c_in, n_out.cp);
 	int i;
 	for(i=0; i<NB_LETTRES; ++i){
-		n.fils[i] = -1;
+		n_out.f[i] = -1;
 	}
 	for(i=0; i<20; ++i){
-		n.historique[i] = -1;
+		n_out.h[i] = -1;
 	}
-	n.nb_historique = 0;
-	n.taille = 1;
-}
-
-void initial(noeud &n){
-	n.mot_actuel[0] = 0;
-	n.pere = -1;
-	carnull(n.c_pere);
+	n_out.nh = 0;
+	n_out.t = 1;
+} //}}}
+void noeud_init(noeud &n_out){ //{{{
+	n_out.m[0] = 0;
+	n_out.p = -1;
+	caractere_zero(n_out.cp);
 	int i;
 	for(i=0; i<NB_LETTRES; ++i){
-		n.fils[i] = -1;
+		n_out.f[i] = -1;
 	}
 	for(i=0; i<20; ++i){
-		n.historique[i] = -1;
+		n_out.h[i] = -1;
 	}
-	n.nb_historique = 0;
-	n.taille = 0;
-	n.info = 0;
-}
-
-void ninfos(noeud &n){
-	printf("mot : %s\ncpere (d) : %d %d\nhistorique : %d\n\n", n.mot_actuel, n.c_pere.normal, n.c_pere.special, n.nb_historique);
-}
-
-
-// TODO : perfectionner
-int len_mot(char* s){
-	int fausse_taille=0;
-	int vraie_taille=0;
-	char lecture;
-	do{
-		lecture = s[fausse_taille];
-		if( (int)lecture != 0 && (int)lecture != -61){
-			++ vraie_taille;
-		}
-		++ fausse_taille;
-	}while((int)lecture != 0 && fausse_taille < 100);
-	return vraie_taille;
-}
-
-// TODO : retourner \0 si on dépasse la taille limite
-caractere trouve_caractere_position( int i, char* s ){
-	//cout << "\n\n\n";
-	caractere carac;
-	int fausse_taille=0;
-	int vraie_taille=0;
-	char lecture;
-	while(vraie_taille < i){
-		lecture = s[fausse_taille];
-		//cout << (int)lecture << endl;
-		if( (int)lecture != 0 && (int)lecture != -61){
-			++ vraie_taille;
-		}
-		++ fausse_taille;
+	n_out.nh = 0;
+	n_out.t = 0;
+	n_out.d = 0;
+} //}}}
+void int_to_arbre_icz(int i_in, arbre &a_out){ //{{{
+	int i1, i2, i3;
+	i1 = a_out.n;
+	a_out.n += i_in;
+	i2 = a_out.n;
+	if(i2 > a_out.z){
+		a_out.v.resize(i2); // optimal? tableau vs vector?
+		a_out.z = i2;
 	}
-	carac.normal = s[fausse_taille];
-	if(carac.normal == -61){
-		carac.special = s[fausse_taille+1];
+	for(i3=i1; i3<i2; ++i3){
+		noeud_init(a_out.v[i3]);
+		cout << "ici" << i3 << "\t";
 	}
-	else{
-		carac.special = 0;
+} //}}}
+bool noeud_mg(noeud &n_out){ // est-ce un mot? //{{{
+	return (n_out.d & 0b00000001);
+} //}}}
+void arbre_noeud_ms(arbre &a_out, noeud &n_out){ // devient un mot //{{{
+	if( !(n_out.d & 0b00000001) ){
+		++a_out.m;
+		n_out.d += 1;
 	}
-	//cout << "\n\n";
-	//cout << "caractere:" << (int)caractere.normal << " et " << (int)caractere.special << endl;
-	return carac;
-}
-
-bool compare(caractere &a, caractere &b){
-	if( (int)a.normal == -61 xor (int)b.normal == -61 ){
-		return false;
+} //}}}
+void arbre_noeud_mu(arbre &a_out, noeud &n_out){ // devient un non-mot //{{{
+	if( n_out.d & 0b00000001 ){
+		--a_out.m;
+		n_out.d -= 1;
 	}
-	else if( (int)a.normal == -61 && (int)b.normal == -61){
-		return ((int)a.special == (int)b.special);
-	}
-	else{
-		return ((int)a.normal == (int)b.normal);
-	}
-}
-
-
-
-void initialise(slettres &c){
-	c.c[0] = chtoca("a");
-	c.c[1] = chtoca("b");
-	c.c[2] = chtoca("c");
-	c.c[3] = chtoca("d");
-	c.c[4] = chtoca("e");
-	c.c[5] = chtoca("f");
-	c.c[6] = chtoca("g");
-	c.c[7] = chtoca("h");
-	c.c[8] = chtoca("i");
-	c.c[9] = chtoca("j");
-	c.c[10] = chtoca("k");
-	c.c[11] = chtoca("l");
-	c.c[12] = chtoca("m");
-	c.c[13] = chtoca("n");
-	c.c[14] = chtoca("o");
-	c.c[15] = chtoca("p");
-	c.c[16] = chtoca("q");
-	c.c[17] = chtoca("r");
-	c.c[18] = chtoca("s");
-	c.c[19] = chtoca("t");
-	c.c[20] = chtoca("u");
-	c.c[21] = chtoca("v");
-	c.c[22] = chtoca("w");
-	c.c[23] = chtoca("x");
-	c.c[24] = chtoca("y");
-	c.c[25] = chtoca("z");
-	c.c[26] = chtoca("à");
-	c.c[27] = chtoca("â");
-	c.c[28] = chtoca("é");
-	c.c[29] = chtoca("è");
-	c.c[30] = chtoca("ê");
-	c.c[31] = chtoca("ë");
-	c.c[32] = chtoca("î");
-	c.c[33] = chtoca("ï");
-	c.c[34] = chtoca("ô");
-	c.c[35] = chtoca("ù");
-	c.c[36] = chtoca("ü");
-	c.c[37] = chtoca("ç");
-}
-
-void inverse(slettres &c, numlettre &n){
-	unsigned char i;
-	for(i=0; i<38; ++i){
-		if(c.c[i].normal == -61){
-			n.special[c.c[i].special] = i;
-		}
-		else{
-			n.normal[c.c[i].normal] = i;
-		}
-	}
-}
-
-unsigned char trouve_lettre(caractere &c, numlettre &n){
-	if(c.normal == -61){
-		return n.special[c.special];
-	}
-	else{
-		return n.normal[c.normal];
-	}
-}
-
-void init_arbre(arbre &a, slettres l){
+} //}}}
+void ninfos(noeud &n){ //{{{
+	// fonction non réglementaire
+	printf("mot : %s\tpere : %d\thistorique : %d\n", n.m, n.p, n.nh);
+} //}}}
+void ainfos(arbre &a){ //{{{
+	// fonction non réglementaire
 	int i;
-	a.taille = 38;
-	a.nb_mots = 0;
-	a.v.resize(38);
+	for(i=0; i<a.n; ++i){
+		cout << "noeud: " << i << ", ";
+		ninfos(a.v[i]);
+	}
+} //}}}
+void arbre_init(arbre &a_out){ //{{{
+	int i;
+	a_out.n = 38;
+	a_out.m = 0;
+	a_out.z = 38;
+	a_out.v.resize(38);
+	l_init(a_out.l);
+	l_to_w(a_out.l, a_out.w);
 	for(i=0; i<38; ++i){
-		racine(a.v[i], l.c[i]);
+		caractere_to_noeud(a_out.l[i], a_out.v[i]);
 	}
-}
-
-// TODO : déplacer et améliorer
-mot extrait(char* m, int i){
-	mot resultat;
-	int fausse_taille=0;
-	int vraie_taille=0;
-	char lecture;
-	while(vraie_taille < i){
-		lecture = m[fausse_taille];
-		resultat.c[fausse_taille] = m[fausse_taille];
-		if( (int)lecture != 0 && (int)lecture != -61){
-			++ vraie_taille;
-		}
-		++ fausse_taille;
+} //}}}
+void int_2_to_historique(int i1_in, int i2_in, noeud &n_out){ //{{{
+	pointeur      p1, p2, p3, p4;
+	int           i1, i2, i3, i4;
+	for(i1=i2_in; i1>i1_in; --i1){
+		n_out.h[i1] = n_out.h[i1-1];
 	}
-	return resultat;
-}
-
-
-// TODO : améliorer ... et mettre toutes les fonctions de "char" ensemble
-int commun(char* m1, char* m2){
-	int fausse_taille=0;
-	int vraie_taille=0;
-	char lecture1, lecture2;
-	bool continuer = true;
-	while(continuer){
-		lecture1 = m1[fausse_taille];
-		lecture2 = m2[fausse_taille];
-		if( (int)lecture1 == 0 || (int)lecture2 == 0 || (int)lecture1 != (int)lecture2){
-			continuer = false; // break serait mieux
+} //}}}
+void pointeur_to_noeud_hist(pointeur &p_in, noeud &n_out){ //{{{
+	pointeur      p1, p2, p3, p4;
+	int           i1, i2, i3, i4;
+	i1 = n_out.nh;
+	if(n_out.nh < 20){
+		for(i2=0; i2<i1; ++i2){
+			if(n_out.h[i2] == p_in){
+				i1 = (2*i2)/3;
+				int_2_to_historique(i1, i2, n_out);
+				n_out.h[(2*i2)/3] = p_in;
+				return;
+			}
 		}
-		else if( (int)lecture1 != 0 && (int)lecture1 != -61){
-			++ vraie_taille;
-		}
-		++ fausse_taille;
+		cout << "là" << p_in << "\t";
+		++n_out.nh;
+		n_out.h[i1] = p_in;
+		return;
 	}
-	return vraie_taille;
-}
-
-void ajoute_mot(noeud &n, mot &m, numlettre &nl){
-	int t = len_mot(m.c);
-	caractere c = trouve_caractere_position(0, m.c);
-	int p;
-	p = trouve_lettre(c, nl);
-}
-
+	for(i2=0; i2<20; ++i2){
+		if(n_out.h[i2] == p_in){
+			i1 = (2*i2)/3;
+			int_2_to_historique(i1, i2, n_out);
+			n_out.h[i1] = p_in;
+			if(i2<19){
+				++n_out.nh;
+			}
+			cout << "làlllà" << p_in << "\t";
+			return;
+		}
+	}
+	int_2_to_historique(13, 20, n_out);
+	n_out.h[13] = p_in;
+} //}}}
+void pointeur_to_arbre_hist(pointeur &p_in, arbre &a_out){ //{{{
+	pointeur_to_noeud_hist(p_in, a_out.v[p_in]); // si le mot a des descendants
+	caractere     c1, c2, c3, c4;
+	pointeur      p1, p2, p3, p4;
+	int           i1, i2, i3, i4;
+	char          u1, u2, u3, u4;
+	p1 = p_in;
+	while(p1 >= 38){ // while not root
+		p1 = a_out.v[p1].p;
+		pointeur_to_noeud_hist(p_in, a_out.v[p1]);
+	}
+} //}}}
+// TODO actualiser les historiques des noeuds permutés //{{{
+void mot_to_arbre_add(char* m_in, arbre &a_out){
+	caractere     c1, c2, c3, c4;
+	pointeur      p1, p2, p3, p4;
+	int           i1, i2, i3, i4; // peuvent etre des char
+	char          u1, u2, u3, u4;
+	i1 = mot_to_int(m_in);
+	if(i1 == 0){
+		return;
+	}
+	if(i1 == 1){
+		mot_int_to_caractere(m_in, 0, c1);
+		p2 = w_caractere_to_char(a_out.w, c1);
+		if( not noeud_mg(a_out.v[p2]) ){
+			arbre_noeud_ms(a_out, a_out.v[p2]);
+			++ a_out.m;
+			pointeur_to_noeud_hist(p2, a_out.v[p2]);
+		}
+		return;
+	}
+	mot_int_to_caractere(m_in, 0, c1);
+	p2 = w_caractere_to_char(a_out.w, c1); // une racine
+	i2 = 1;
+	mot_int_to_caractere(m_in, i2, c1);
+	u1 = w_caractere_to_char(a_out.w, c1);
+	p3 = a_out.v[p2].f[u1];
+	while(true){
+		if(p3 == -1){ // le fils est innexistant
+			cout << "mode1 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			p3 = a_out.n;
+			++a_out.m;
+			int_to_arbre_icz(1, a_out);
+			noeud_init(a_out.v[p3]);
+			mot_copie(m_in, a_out.v[p3].m);
+			a_out.v[p2].f[u1] = p3;
+			a_out.v[p3].p = p2;
+			pointeur_to_arbre_hist(p3, a_out);
+			return;
+		}
+		i3 = mot_to_int(a_out.v[p3].m);
+		i4 = mot_2_to_int(m_in, a_out.v[p3].m);
+		// i2 < i1 , i4 <= i1 , i4 <= i3
+		if( i4 == i1 && i4 == i3){ // m == a_out.v[p3].mot
+			cout << "mode2 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			if( not noeud_mg(a_out.v[p2]) ){
+				arbre_noeud_ms(a_out, a_out.v[p2]);
+				++ a_out.m;
+				pointeur_to_arbre_hist(p2, a_out);
+			}
+			return;
+		}
+		if( i4 != i1 && i4 == i3 ){ // appel récursif (le seul)
+			cout << "mode3 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			p2 = p3;
+			i2 = i3;
+			mot_int_to_caractere(m_in, i2, c1);
+			u1 = w_caractere_to_char(a_out.w, c1);
+			p3 = a_out.v[p2].f[u1];
+			continue; // retourne au début du while
+		}
+		if( i4 == i1 && i4 != i3 ){ // mot= noeud intermédiaire
+			cout << "mode4 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			p1 = a_out.n;
+			++a_out.m; // TODO vérifier
+			int_to_arbre_icz(1, a_out); // ajoute UN noeud
+			a_out.v[p2].f[u1] = p1;
+			a_out.v[p1].p = p2;
+			noeud_init(a_out.v[p1]);
+			mot_copie(m_in, a_out.v[p1].m);
+			mot_int_to_caractere(a_out.v[p3].m, i1, c2);
+			u2 = w_caractere_to_char(a_out.w, c1);
+			a_out.v[p1].f[u2] = p3;
+			a_out.v[p3].p = p1;
+			pointeur_to_arbre_hist(p3, a_out);
+			// TODO fonction de copie d'historique
+			return;
+		}
+		if( i4 != i1 && i4 != i3 ){
+			cout << "mode5 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			p1 = a_out.n + 1;
+			p4 = a_out.n;
+			++a_out.m; // compte un mot de plus TODO actualiser les infos "est mot" partout
+			int_to_arbre_icz(2, a_out); // ajoute les deux noeuds
+			noeud_init(a_out.v[p1]);
+			noeud_init(a_out.v[p4]);
+			a_out.v[p2].f[u1] = p4;
+			a_out.v[p4].p = p2;
+			mot_copie(m_in, a_out.v[p1].m);
+			mot_int_to_mot(m_in, i4, a_out.v[p4].m);
+			mot_int_to_caractere(m_in, i4, c1);
+			u1 = w_caractere_to_char(a_out.w, c1);
+			mot_int_to_caractere(a_out.v[p3].m, i4, c3); // TODO les indices commencent (partout) à zéro
+			u3 = w_caractere_to_char(a_out.w, c3);
+			a_out.v[p4].f[u1] = p1;
+			a_out.v[p1].p = p4;
+			a_out.v[p4].f[u3] = p3;
+			a_out.v[p3].p = p4;
+			pointeur_to_arbre_hist(p1, a_out);
+			// TODO copier l'historique
+			return;
+		}
+	}
+} //}}}
+void mot_arbre_to_pointeur(char* c_in, arbre &a_in, pointeur &p_out){ //{{{
+	caractere     c1, c2, c3, c4;
+	pointeur      p1, p2, p3, p4;
+	int           i1, i2, i3, i4;
+	unsigned char u1, u2, u3, u4;
+	// TODO everything
+} //}}}
+void pointeur_arbre_to_mot(pointeur &p_in, arbre &a_in, char* m_out){ //{{{
+	mot_copie(a_in.v[p_in].m, m_out);
+} //}}}
+//{{{ 
+//}}}

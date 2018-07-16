@@ -10,41 +10,26 @@ using namespace std;
 
 
 int main(){
+	struct mot{
+		char m[30];
+	};
+	typedef struct mot mot;
+	vector <mot> mmm;
+	mmm.resize(40);
 
-	char mot6[30];
-	char mot4[30];
-	char mot7[30];
-	char mot3[30];
-	char mot9[30];
-	char mot0[30];
-	char mot2[30];
-	char mot5[30];
-	char mot8[30];
 	int i1, i2, i3;
-	i1=sprintf(mot9,"%s","alléé");
-	i1=sprintf(mot4,"%s","atotou");
-	i1=sprintf(mot7,"%s","alùre");
-	i1=sprintf(mot5,"%s","aaa");
-	i1=sprintf(mot3,"%s","attirancer");
-	i1=sprintf(mot6,"%s","aaaas");
-	i1=sprintf(mot2,"%s","attoancer");
-	i1=sprintf(mot0,"%s","aaaaaaab");
-	i1=sprintf(mot8,"%s","allér");
+	i2 = 0;
 	arbre a1;
+	i1=sprintf(mmm[i2].m,"%s","aulér"); ++i2;
+	i1=sprintf(mmm[i2].m,"%s","axlér"); ++i2;
+	i1=sprintf(mmm[i2].m,"%s","axléa"); ++i2;
+	i1=sprintf(mmm[i2].m,"%s","aulér"); ++i2;
+	//i1=sprintf(mmm[i2].m,"%s","axlér"); ++i2;
+	//i1=sprintf(mmm[i2].m,"%s","axléa"); ++i2;
 	arbre_init(a1);
-	mot_to_arbre_add(mot7, a1);
-	mot_to_arbre_add(mot0, a1);
-	mot_to_arbre_add(mot6, a1);
-	mot_to_arbre_add(mot9, a1);
-	mot_to_arbre_add(mot4, a1);
-	mot_to_arbre_add(mot8, a1);
-	mot_to_arbre_add(mot5, a1);
-	mot_to_arbre_add(mot3, a1);
-	mot_to_arbre_add(mot2, a1);
-	mot_to_arbre_add(mot9, a1);
-	mot_to_arbre_add(mot9, a1);
-	mot_to_arbre_add(mot4, a1);
-	mot_to_arbre_add(mot9, a1);
+	for(i3=0; i3<i2; ++i3){
+		mot_to_arbre_add(mmm[i3].m, a1);
+	}
 	ainfos(a1);
 	return 0;
 }

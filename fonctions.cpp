@@ -53,7 +53,7 @@ void int_to_arbre_icz(int i_in, arbre &a_out){ //{{{
 	}
 	for(i3=i1; i3<i2; ++i3){
 		noeud_init(a_out.v[i3]);
-		cout << "ici" << i3 << "\t";
+		cout << "grandit->" << i3 << "\n";
 	}
 } //}}}
 bool noeud_mg(noeud &n_out){ // est-ce un mot? //{{{
@@ -73,13 +73,36 @@ void arbre_noeud_mu(arbre &a_out, noeud &n_out){ // devient un non-mot //{{{
 } //}}}
 void ninfos(noeud &n){ //{{{
 	// fonction non réglementaire
-	printf("mot : %s\tpere : %d\thistorique : %d\n", n.m, n.p, n.nh);
+	if(noeud_mg(n)){
+		printf("\r\t MOT+:%s\r\t\t\t pere:%d  historique:%d\t", n.m, n.p, n.nh);
+	}
+	else{
+		printf("\r\t mot :%s\r\t\t\t pere:%d  historique:%d\t", n.m, n.p, n.nh);
+	}
+	printf("\r\t\t\t\t\t\t");
+	int i1, i2;
+	printf("histo:");
+	for(i1=0; i1<20; ++i1){
+		i2 = n.h[i1];
+		if(i2 != -1){
+			printf("h%d=%d ", i1, i2);
+		}
+	}
+	printf("\r\t\t\t\t\t\t\t\t\t\t\t\t\t\t");
+	printf("fils: ");
+	for(i1=0; i1<38; ++i1){
+		i2 = n.f[i1];
+		if(i2 != -1){
+			printf("f%d=%d ", i1, i2);
+		}
+	}
+	printf("\n");
 } //}}}
 void ainfos(arbre &a){ //{{{
 	// fonction non réglementaire
 	int i;
 	for(i=0; i<a.n; ++i){
-		cout << "noeud: " << i << ", ";
+		cout << "noeud:" << i << ", ";
 		ninfos(a.v[i]);
 	}
 } //}}}
@@ -115,7 +138,7 @@ void pointeur_to_noeud_hist(pointeur &p_in, noeud &n_out){ //{{{
 				return;
 			}
 		}
-		cout << "là" << p_in << "\t";
+		//cout << "là" << p_in << "\t";
 		++n_out.nh;
 		n_out.h[i1] = p_in;
 		return;
@@ -128,7 +151,7 @@ void pointeur_to_noeud_hist(pointeur &p_in, noeud &n_out){ //{{{
 			if(i2<19){
 				++n_out.nh;
 			}
-			cout << "làlllà" << p_in << "\t";
+			//cout << "làlllà" << p_in << "\t";
 			return;
 		}
 	}
@@ -136,6 +159,7 @@ void pointeur_to_noeud_hist(pointeur &p_in, noeud &n_out){ //{{{
 	n_out.h[13] = p_in;
 } //}}}
 void pointeur_to_arbre_hist(pointeur &p_in, arbre &a_out){ //{{{
+	printf("HISTO:%d ",p_in);
 	pointeur_to_noeud_hist(p_in, a_out.v[p_in]); // si le mot a des descendants
 	caractere     c1, c2, c3, c4;
 	pointeur      p1, p2, p3, p4;
@@ -144,20 +168,25 @@ void pointeur_to_arbre_hist(pointeur &p_in, arbre &a_out){ //{{{
 	p1 = p_in;
 	while(p1 >= 38){ // while not root
 		p1 = a_out.v[p1].p;
+		printf("h:%d,%d ",p_in, p1);
 		pointeur_to_noeud_hist(p_in, a_out.v[p1]);
 	}
+	printf("\n");
 } //}}}
 // TODO actualiser les historiques des noeuds permutés //{{{
+// TODO  modifier les peres / fils
 void mot_to_arbre_add(char* m_in, arbre &a_out){
 	caractere     c1, c2, c3, c4;
 	pointeur      p1, p2, p3, p4;
 	int           i1, i2, i3, i4; // peuvent etre des char
 	char          u1, u2, u3, u4;
 	i1 = mot_to_int(m_in);
+	p1 = 0; // évite des affichages ambigus
 	if(i1 == 0){
 		return;
 	}
 	if(i1 == 1){
+		cout << "mo 0 (root)\r\t\t" << i1 << "\t" << i2 << "\t" << i3 << "\t" << i4 << "\t" << p1 << "\t" << p2 << "\t" << p3 << "\t" << p4 << "\t" << endl;
 		mot_int_to_caractere(m_in, 0, c1);
 		p2 = w_caractere_to_char(a_out.w, c1);
 		if( not noeud_mg(a_out.v[p2]) ){
@@ -175,7 +204,8 @@ void mot_to_arbre_add(char* m_in, arbre &a_out){
 	p3 = a_out.v[p2].f[u1];
 	while(true){
 		if(p3 == -1){ // le fils est innexistant
-			cout << "mode1 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			// a priori corect
+			cout << "mo 1 (nv fils)\r\t\t" << i1 << "\t" << i2 << "\t" << i3 << "\t" << i4 << "\t" << p1 << "\t" << p2 << "\t" << p3 << "\t" << p4 << "\t" << endl;
 			p3 = a_out.n;
 			++a_out.m;
 			int_to_arbre_icz(1, a_out);
@@ -183,6 +213,7 @@ void mot_to_arbre_add(char* m_in, arbre &a_out){
 			mot_copie(m_in, a_out.v[p3].m);
 			a_out.v[p2].f[u1] = p3;
 			a_out.v[p3].p = p2;
+			arbre_noeud_ms(a_out, a_out.v[p3]);
 			pointeur_to_arbre_hist(p3, a_out);
 			return;
 		}
@@ -190,16 +221,20 @@ void mot_to_arbre_add(char* m_in, arbre &a_out){
 		i4 = mot_2_to_int(m_in, a_out.v[p3].m);
 		// i2 < i1 , i4 <= i1 , i4 <= i3
 		if( i4 == i1 && i4 == i3){ // m == a_out.v[p3].mot
-			cout << "mode2 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
-			if( not noeud_mg(a_out.v[p2]) ){
-				arbre_noeud_ms(a_out, a_out.v[p2]);
+			// a priori corect
+			cout << "mo 2 (trouvé)\r\t\t" << i1 << "\t" << i2 << "\t" << i3 << "\t" << i4 << "\t" << p1 << "\t" << p2 << "\t" << p3 << "\t" << p4 << "\t" << endl;
+			// TODO vérifier si c'est bien p1 et pas l'ancient p2
+			// TODO ce n'est ni i2 ni i3
+			if( not noeud_mg(a_out.v[p3]) ){
 				++ a_out.m;
-				pointeur_to_arbre_hist(p2, a_out);
+				arbre_noeud_ms(a_out, a_out.v[p3]);
+				pointeur_to_arbre_hist(p3, a_out);
 			}
 			return;
 		}
 		if( i4 != i1 && i4 == i3 ){ // appel récursif (le seul)
-			cout << "mode3 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			// a priori corect
+			cout << "mo 3 (récursif)\r\t\t" << i1 << "\t" << i2 << "\t" << i3 << "\t" << i4 << "\t" << p1 << "\t" << p2 << "\t" << p3 << "\t" << p4 << "\t" << endl;
 			p2 = p3;
 			i2 = i3;
 			mot_int_to_caractere(m_in, i2, c1);
@@ -208,7 +243,8 @@ void mot_to_arbre_add(char* m_in, arbre &a_out){
 			continue; // retourne au début du while
 		}
 		if( i4 == i1 && i4 != i3 ){ // mot= noeud intermédiaire
-			cout << "mode4 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			// TODO fils actualise
+			cout << "mo 4 (milieu)\r\t\t" << i1 << "\t" << i2 << "\t" << i3 << "\t" << i4 << "\t" << p1 << "\t" << p2 << "\t" << p3 << "\t" << p4 << "\t" << endl;
 			p1 = a_out.n;
 			++a_out.m; // TODO vérifier
 			int_to_arbre_icz(1, a_out); // ajoute UN noeud
@@ -220,18 +256,21 @@ void mot_to_arbre_add(char* m_in, arbre &a_out){
 			u2 = w_caractere_to_char(a_out.w, c1);
 			a_out.v[p1].f[u2] = p3;
 			a_out.v[p3].p = p1;
-			pointeur_to_arbre_hist(p3, a_out);
+			arbre_noeud_ms(a_out, a_out.v[p1]);
+			pointeur_to_arbre_hist(p1, a_out);
 			// TODO fonction de copie d'historique
 			return;
 		}
 		if( i4 != i1 && i4 != i3 ){
-			cout << "mode5 " << i1 << " " << i2 << " " << i3 << " " << i4 << " " << p1 << " " << p2 << " " << p3 << " " << p4 << " " << endl;
+			// TODO vérifier fils
+			cout << "mo 5 (fourche)\r\t\t" << i1 << "\t" << i2 << "\t" << i3 << "\t" << i4 << "\t" << p1 << "\t" << p2 << "\t" << p3 << "\t" << p4 << "\t" << endl;
 			p1 = a_out.n + 1;
 			p4 = a_out.n;
 			++a_out.m; // compte un mot de plus TODO actualiser les infos "est mot" partout
 			int_to_arbre_icz(2, a_out); // ajoute les deux noeuds
-			noeud_init(a_out.v[p1]);
-			noeud_init(a_out.v[p4]);
+			noeud_init(a_out.v[p1]); // mot courrant
+			noeud_init(a_out.v[p4]); // noeud (pas mot) intermédiaire
+			arbre_noeud_mu(a_out, a_out.v[p4]);
 			a_out.v[p2].f[u1] = p4;
 			a_out.v[p4].p = p2;
 			mot_copie(m_in, a_out.v[p1].m);
@@ -244,6 +283,7 @@ void mot_to_arbre_add(char* m_in, arbre &a_out){
 			a_out.v[p1].p = p4;
 			a_out.v[p4].f[u3] = p3;
 			a_out.v[p3].p = p4;
+			arbre_noeud_ms(a_out, a_out.v[p1]);
 			pointeur_to_arbre_hist(p1, a_out);
 			// TODO copier l'historique
 			return;
